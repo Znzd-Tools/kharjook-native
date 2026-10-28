@@ -135,3 +135,10 @@ String priorPeriodCompareLabel(String kind) {
   if (kind == 'year') return 'نسبت به سال قبل (هم‌تراز)';
   return '';
 }
+
+(String, String) encodePeriodParams(Period p) => (p.kind, formatJalaali(p.start));
+
+Period decodePeriodParams(String? period, String? d) {
+  final kind = kPeriodKinds.contains(period) ? period! : 'month';
+  return periodContaining(kind, parseJalaali(d ?? '') ?? todayJalaali());
+}
