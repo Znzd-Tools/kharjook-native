@@ -107,7 +107,7 @@ class _EndpointBodyState extends State<_EndpointBody> {
     return Column(mainAxisSize: MainAxisSize.min, children: [
       Padding(
         padding: const EdgeInsets.only(bottom: 12),
-        child: TextInput(value: q, onChanged: (v) => setState(() => q = v), hint: 'جستجو...', prefixIcon: const Icon(Icons.search, size: 18, color: C.slate500)),
+        child: AppTextField(value: q, onChanged: (v) => setState(() => q = v), hint: 'جستجو...', prefixIcon: const Icon(Icons.search, size: 18, color: C.slate500)),
       ),
       Flexible(
         child: ListView(shrinkWrap: true, children: [

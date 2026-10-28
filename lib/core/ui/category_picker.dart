@@ -161,7 +161,7 @@ class _CategoryPickerBodyState extends State<_CategoryPickerBody> {
     return Column(mainAxisSize: MainAxisSize.min, children: [
       Padding(
         padding: const EdgeInsets.only(bottom: 10),
-        child: TextInput(value: q, onChanged: (v) => setState(() => q = v), hint: 'جستجو...', prefixIcon: const Icon(Icons.search, size: 18, color: C.slate500)),
+        child: AppTextField(value: q, onChanged: (v) => setState(() => q = v), hint: 'جستجو...', prefixIcon: const Icon(Icons.search, size: 18, color: C.slate500)),
       ),
       Flexible(
         child: ListView(shrinkWrap: true, children: [

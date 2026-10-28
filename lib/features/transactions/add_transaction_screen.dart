@@ -723,7 +723,7 @@ class _FormRowState extends State<_FormRow> {
         ],
         const SizedBox(height: 16),
         const FieldLabel('توضیحات (اختیاری)'),
-        TextInput(value: f.note, maxLines: 3, onChanged: (v) => widget.onChange(f.copy()..note = v.length > 500 ? v.substring(0, 500) : v)),
+        AppTextField(value: f.note, maxLines: 3, onChanged: (v) => widget.onChange(f.copy()..note = v.length > 500 ? v.substring(0, 500) : v)),
         if (f.type == 'TRANSFER' && sw != null && tw != null && sw.currency != tw.currency)
           const Padding(
             padding: EdgeInsets.only(top: 10),
@@ -1086,7 +1086,7 @@ class _ConvertFormView extends StatelessWidget {
         ],
         if (warning != null) Padding(padding: const EdgeInsets.only(top: 8), child: Text(warning, style: const TextStyle(fontSize: 11, color: C.amber300))),
         const SizedBox(height: 12),
-        TextInput(value: form.note, onChanged: (v) => onChange(form.copy()..note = v), hint: 'یادداشت (اختیاری)', maxLines: 2),
+        AppTextField(value: form.note, onChanged: (v) => onChange(form.copy()..note = v), hint: 'یادداشت (اختیاری)', maxLines: 2),
       ]),
     );
   }

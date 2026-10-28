@@ -230,7 +230,7 @@ class Field extends StatelessWidget {
 }
 
 /// Plain text input bound to a value (keeps controller in sync).
-class TextInput extends StatefulWidget {
+class AppTextField extends StatefulWidget {
   final String value;
   final ValueChanged<String> onChanged;
   final String? hint;
@@ -242,7 +242,7 @@ class TextInput extends StatefulWidget {
   final Widget? prefixIcon;
   final List<TextInputFormatter>? formatters;
   final bool enabled;
-  const TextInput({
+  const AppTextField({
     super.key,
     required this.value,
     required this.onChanged,
@@ -257,13 +257,13 @@ class TextInput extends StatefulWidget {
     this.enabled = true,
   });
   @override
-  State<TextInput> createState() => _TextInputState();
+  State<AppTextField> createState() => _TextInputState();
 }
 
-class _TextInputState extends State<TextInput> {
+class _TextInputState extends State<AppTextField> {
   late final TextEditingController _c = TextEditingController(text: widget.value);
   @override
-  void didUpdateWidget(covariant TextInput old) {
+  void didUpdateWidget(covariant AppTextField old) {
     super.didUpdateWidget(old);
     if (widget.value != _c.text) _c.text = widget.value;
   }
@@ -646,7 +646,7 @@ class _ListPickerBodyState extends State<_ListPickerBody> {
       if (widget.searchable)
         Padding(
           padding: const EdgeInsets.only(bottom: 10),
-          child: TextInput(value: q, onChanged: (v) => setState(() => q = v), hint: 'جستجو...', prefixIcon: const Icon(Icons.search, size: 18, color: C.slate500)),
+          child: AppTextField(value: q, onChanged: (v) => setState(() => q = v), hint: 'جستجو...', prefixIcon: const Icon(Icons.search, size: 18, color: C.slate500)),
         ),
       Flexible(
         child: ListView(shrinkWrap: true, children: [

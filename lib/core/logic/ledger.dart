@@ -5,6 +5,8 @@
 
 import 'dart:math' as math;
 
+import 'package:collection/collection.dart' show mergeSort;
+
 import '../models.dart';
 import '../utils/jalali.dart';
 import 'rate_history.dart';
@@ -394,4 +396,11 @@ double usdRateOn(RateHistories histories, String date, String todayStr, double c
   if (date.isEmpty || date.compareTo(todayStr) >= 0) return currentRate;
   final r = histories['USD']?.at(date);
   return r != null && r > 0 ? r : currentRate;
+}
+
+/// Stable sort (JS `Array.prototype.sort` is stable; Dart's `List.sort` is not).
+List<T> stableSorted<T>(Iterable<T> items, int Function(T a, T b) compare) {
+  final list = items.toList();
+  mergeSort(list, compare: compare);
+  return list;
 }

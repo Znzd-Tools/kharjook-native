@@ -115,11 +115,11 @@ class _LoginScreenState extends State<LoginScreen> {
         if (error.isNotEmpty) _banner(error, C.rose400),
         Field(
           label: 'ایمیل',
-          child: TextInput(value: email, onChanged: (v) => email = v, ltr: true, keyboardType: TextInputType.emailAddress, prefixIcon: const Icon(Icons.person_outline, size: 18, color: C.slate500)),
+          child: AppTextField(value: email, onChanged: (v) => email = v, ltr: true, keyboardType: TextInputType.emailAddress, prefixIcon: const Icon(Icons.person_outline, size: 18, color: C.slate500)),
         ),
         Field(
           label: 'رمز عبور',
-          child: TextInput(value: password, onChanged: (v) => password = v, ltr: true, obscure: true, prefixIcon: const Icon(Icons.lock_outline, size: 18, color: C.slate500)),
+          child: AppTextField(value: password, onChanged: (v) => password = v, ltr: true, obscure: true, prefixIcon: const Icon(Icons.lock_outline, size: 18, color: C.slate500)),
         ),
         const SizedBox(height: 10),
         AppButton('ورود به حساب', expand: true, loading: submitting, onPressed: _login),
@@ -190,9 +190,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) => _AuthFrame(subtitle: 'ساخت حساب جدید', children: [
         if (error.isNotEmpty) _banner(error, C.rose400),
-        Field(label: 'ایمیل', child: TextInput(value: email, onChanged: (v) => email = v, ltr: true, keyboardType: TextInputType.emailAddress)),
-        Field(label: 'رمز عبور', child: TextInput(value: password, onChanged: (v) => password = v, ltr: true, obscure: true)),
-        Field(label: 'تکرار رمز عبور', child: TextInput(value: confirm, onChanged: (v) => confirm = v, ltr: true, obscure: true)),
+        Field(label: 'ایمیل', child: AppTextField(value: email, onChanged: (v) => email = v, ltr: true, keyboardType: TextInputType.emailAddress)),
+        Field(label: 'رمز عبور', child: AppTextField(value: password, onChanged: (v) => password = v, ltr: true, obscure: true)),
+        Field(label: 'تکرار رمز عبور', child: AppTextField(value: confirm, onChanged: (v) => confirm = v, ltr: true, obscure: true)),
         const SizedBox(height: 10),
         AppButton('ساخت حساب', expand: true, loading: submitting, onPressed: _register),
         const SizedBox(height: 16),
@@ -236,9 +236,9 @@ class _SetupScreenState extends State<SetupScreen> {
             style: TextStyle(fontSize: 12, color: C.slate400, height: 1.7)),
         const SizedBox(height: 16),
         if (error.isNotEmpty) _banner(error, C.amber300),
-        Field(label: 'Supabase URL', child: TextInput(value: url, onChanged: (v) => url = v.trim(), ltr: true, hint: 'https://xxxx.supabase.co')),
-        Field(label: 'Supabase anon key', child: TextInput(value: key, onChanged: (v) => key = v.trim(), ltr: true, maxLines: 3)),
-        Field(label: 'آدرس وب‌اپ (برای قیمت‌ها و تلگرام)', child: TextInput(value: api, onChanged: (v) => api = v.trim(), ltr: true)),
+        Field(label: 'Supabase URL', child: AppTextField(value: url, onChanged: (v) => url = v.trim(), ltr: true, hint: 'https://xxxx.supabase.co')),
+        Field(label: 'Supabase anon key', child: AppTextField(value: key, onChanged: (v) => key = v.trim(), ltr: true, maxLines: 3)),
+        Field(label: 'آدرس وب‌اپ (برای قیمت‌ها و تلگرام)', child: AppTextField(value: api, onChanged: (v) => api = v.trim(), ltr: true)),
         AppButton('ذخیره و ادامه', expand: true, onPressed: _save),
       ]);
 }
