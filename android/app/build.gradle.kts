@@ -43,7 +43,14 @@ android {
                 storePassword = keyProps.getProperty("storePassword")
                 keyAlias = keyProps.getProperty("keyAlias")
                 keyPassword = keyProps.getProperty("keyPassword")
+                enableV1Signing = true
+                enableV2Signing = true
             }
+        }
+        // Some OEM package installers reject APKs without a v1 (JAR) signature.
+        getByName("debug") {
+            enableV1Signing = true
+            enableV2Signing = true
         }
     }
 
