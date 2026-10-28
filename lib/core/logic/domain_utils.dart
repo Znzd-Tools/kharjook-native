@@ -492,3 +492,68 @@ List<GoalDriftRow> buildGoalDriftRows({
 List<GoalDriftRow> filterDriftedGoalRows(List<GoalDriftRow> rows) => rows.where((r) => !isGoalMet(r.currentValue, r.targetValue, r.valueKind)).toList();
 List<GoalDriftRow> sortGoalDriftRows(List<GoalDriftRow> rows) =>
     stableSorted(rows, (a, b) => (b.currentValue - b.targetValue).abs().compareTo((a.currentValue - a.targetValue).abs()));
+
+// ─── Recurring due dates (plan/utils/recurring-due-in-period.ts) ────────────
+
+int compareJalaaliStrings(String a, String b) {
+  final pa = parseJalaali(a), pb = parseJalaali(b);
+  if (pa == null || pb == null) return a.compareTo(b);
+  return cmpJalaali(pa, pb);
+}
+
+JDate subtractIntervalDate(JDate date, int n, String period) {
+  if (period == 'day') return addDays(date, -n);
+  if (period == 'week') return addDays(date, -n * 7);
+  if (period == 'month') {
+    final abs = date.jm - 1 - n;
+    final y = date.jy + (abs / 12).floor();
+    final m = ((abs % 12) + 12) % 12 + 1;
+    return JDate(y, m, math.min(date.jd, jalaaliMonthLength(y, m)));
+  }
+  final y = date.jy - n;
+  return JDate(y, date.jm, math.min(date.jd, jalaaliMonthLength(y, date.jm)));
+}
+
+List<String> dueDatesInPeriod(String dateString, int intervalNumber, String intervalPeriod, Period period, {String? endDateString}) {
+  final anchor = parseJalaali(dateString);
+  if (anchor == null) return [];
+  String at(int i) => formatJalaali(nthIntervalDate(anchor, intervalNumber, intervalPeriod, i));
+  final start = formatJalaali(period.start), end = formatJalaali(period.end);
+  var index = 0;
+  while (index < 500 && compareJalaaliStrings(at(index), start) < 0) {
+    index++;
+  }
+  final dates = <String>[];
+  for (var i = 0; i < 500; i++, index++) {
+    final due = at(index);
+    if (endDateString != null && endDateString.isNotEmpty && compareJalaaliStrings(due, endDateString) > 0) break;
+    if (compareJalaaliStrings(due, end) > 0) break;
+    if (isInPeriod(due, period)) dates.add(due);
+  }
+  return dates;
+}
+
+List<String> recurringDueDatesInPeriod(RecurringTransaction r, Period period) {
+  if (!r.isActive || r.deletedAt != null) return [];
+  return dueDatesInPeriod(r.nextDueDateString, r.intervalNumber, r.intervalPeriod, period, endDateString: r.endDateString);
+}
+
+List<String> subscriptionDueDatesInPeriod(Subscription s, Period period) {
+  if (s.status != 'active' || s.deletedAt != null) return [];
+  return dueDatesInPeriod(s.nextDueDateString, s.intervalNumber, s.intervalPeriod, period);
+}
+
+JDate rewindRecurringAnchor(JDate anchor, int n, String period, JDate periodStart) {
+  final ps = formatJalaali(periodStart);
+  var cursor = anchor;
+  for (var i = 0; i < 500; i++) {
+    if (compareJalaaliStrings(formatJalaali(cursor), ps) < 0) return cursor;
+    cursor = subtractIntervalDate(cursor, n, period);
+  }
+  return cursor;
+}
+
+String intervalLabel(int n, String period) {
+  final unit = period == 'day' ? 'روز' : period == 'week' ? 'هفته' : period == 'month' ? 'ماه' : 'سال';
+  return n == 1 ? 'هر $unit' : 'هر $n $unit';
+}
