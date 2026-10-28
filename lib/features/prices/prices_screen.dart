@@ -22,7 +22,10 @@ String _usdInput(double v) => !v.isFinite || v <= 0 ? '' : v.toStringAsFixed(2);
 
 /// Slugs with fetch keys that are bound to at least one asset.
 List<String> boundFetchablePriceSourceSlugs(Iterable<String?> ids, List<PriceSource> catalog) {
-  final bound = <String>{for (final id in ids) if (id != null && id.isNotEmpty) id};
+  final bound = <String>{
+    for (final id in ids)
+      if (id != null && id.isNotEmpty) id,
+  };
   return bound.where((slug) {
     final s = catalog.where((c) => c.slug == slug).firstOrNull;
     return s?.fetchKey != null && s!.fetchKey!.isNotEmpty && !s.deprecated;
@@ -52,7 +55,10 @@ class _PricesScreenState extends State<PricesScreen> {
   }
 
   List<String> get _otherCurrencies {
-    final used = {for (final w in _s.wallets) if (w.currency != 'IRT' && w.currency != 'USD') w.currency};
+    final used = {
+      for (final w in _s.wallets)
+        if (w.currency != 'IRT' && w.currency != 'USD') w.currency,
+    };
     return _rateOrder.where((c) => c != 'USD' && used.contains(c)).toList();
   }
 
@@ -284,139 +290,227 @@ class _PricesScreenState extends State<PricesScreen> {
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
         child: AppButton(saving ? 'در حال ذخیره...' : 'ذخیره', expand: true, onPressed: saving ? null : _save),
       ),
-      body: ListView(padding: const EdgeInsets.fromLTRB(16, 4, 16, 24), children: [
-        if (autoAssets.isNotEmpty) ...[
-          AppCard(
-            padding: const EdgeInsets.all(12),
-            color: (healthy ? C.emerald : C.amber).withValues(alpha: 0.1),
-            borderColor: (healthy ? C.emerald : C.amber).withValues(alpha: 0.2),
-            child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Icon(healthy ? Icons.refresh : Icons.error_outline, size: 14, color: healthy ? C.emerald300 : C.amber300),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  healthy
-                      ? 'قیمت خودکار ${toPersianDigits(synced)} دارایی امروز دریافت شده (بروزرسانی روزانه ~۰۹:۰۰).'
-                      : 'قیمت خودکار ${toPersianDigits(missing)} از ${toPersianDigits(autoAssets.length)} دارایی امروز دریافت نشده — دکمه بروزرسانی را بزنید یا منبع قیمت را بررسی کنید.',
-                  style: TextStyle(fontSize: 11, height: 1.6, color: healthy ? const Color(0xFFA7F3D0) : const Color(0xFFFDE68A)),
-                ),
-              ),
-            ]),
-          ),
-          const SizedBox(height: 12),
-        ],
-        Field(label: 'نرخ دلار (تومان)', child: NumberInput(value: localUsd, onChanged: _onUsdRate)),
-        if (others.isNotEmpty)
-          AppCard(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-              const Text('نرخ ارزهای کیف پول', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: C.slate400)),
-              const SizedBox(height: 8),
-              for (final c in others)
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 6),
-                  child: Row(children: [
-                    Container(
-                      width: 36,
-                      height: 36,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(color: C.hover, borderRadius: BorderRadius.circular(10)),
-                      child: Text(currencyMeta(c).symbol, textDirection: TextDirection.ltr, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        Text(currencyMeta(c).label, style: const TextStyle(fontSize: 12, color: C.slate200)),
-                        Text('1 $c = ? تومان', textDirection: TextDirection.ltr, style: const TextStyle(fontSize: 10, color: C.slate500)),
-                      ]),
-                    ),
-                    SizedBox(width: 140, child: NumberInput(value: otherRates[c] ?? '', hint: '0', onChanged: (v) => otherRates[c] = v)),
-                  ]),
-                ),
-            ]),
-          ),
-        const Padding(
-          padding: EdgeInsets.symmetric(vertical: 12),
-          child: Text('دریافت قیمت زنده با دکمهٔ رفرش یا رفرش داشبورد انجام می‌شود.', style: TextStyle(fontSize: 11, color: C.slate500)),
-        ),
-        const Text('قیمت دارایی‌ها', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: C.slate400)),
-        const SizedBox(height: 8),
-        for (final a in visibleAssets)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 10),
-            child: AppCard(
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
+        children: [
+          if (autoAssets.isNotEmpty) ...[
+            AppCard(
               padding: const EdgeInsets.all(12),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                Text(a.name, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white)),
-                const SizedBox(height: 8),
-                Row(children: [
-                  Expanded(child: Field(label: 'دلار', child: NumberInput(value: local[a.id]?.$2 ?? '', suffix: '\$', onChanged: (v) => _onPrice(a.id, false, v)))),
+              color: (healthy ? C.emerald : C.amber).withValues(alpha: 0.1),
+              borderColor: (healthy ? C.emerald : C.amber).withValues(alpha: 0.2),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(healthy ? Icons.refresh : Icons.error_outline, size: 14, color: healthy ? C.emerald300 : C.amber300),
                   const SizedBox(width: 8),
-                  Expanded(child: Field(label: 'تومان', child: NumberInput(value: local[a.id]?.$1 ?? '', suffix: 'ت', onChanged: (v) => _onPrice(a.id, true, v)))),
-                ]),
-              ]),
-            ),
-          ),
-        if (visibleAssets.isEmpty)
-          const Padding(
-            padding: EdgeInsets.all(20),
-            child: Text('دارایی با مقدار بیشتر از صفر برای بروزرسانی قیمت وجود ندارد.', textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: C.slate500)),
-          ),
-        const SizedBox(height: 8),
-        AppCard(
-          padding: EdgeInsets.zero,
-          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            ListTile(
-              title: const Text('تنظیمات پیشرفته', style: TextStyle(fontSize: 13, color: C.slate200)),
-              trailing: AnimatedRotation(turns: advancedOpen ? 0.5 : 0, duration: const Duration(milliseconds: 150), child: const Icon(Icons.expand_more, color: C.slate400)),
-              onTap: () => setState(() => advancedOpen = !advancedOpen),
-            ),
-            if (advancedOpen)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
-                child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                  _PriceSourceCatalog(onChanged: () => setState(_syncConv)),
-                  const Divider(color: C.white10, height: 28),
-                  const Text('ضرایب تبدیل', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: C.slate300)),
-                  const SizedBox(height: 6),
-                  _advanced(s),
-                ]),
+                  Expanded(
+                    child: Text(
+                      healthy
+                          ? 'قیمت خودکار ${toPersianDigits(synced)} دارایی امروز دریافت شده (بروزرسانی روزانه ~۰۹:۰۰).'
+                          : 'قیمت خودکار ${toPersianDigits(missing)} از ${toPersianDigits(autoAssets.length)} دارایی امروز دریافت نشده — دکمه بروزرسانی را بزنید یا منبع قیمت را بررسی کنید.',
+                      style: TextStyle(fontSize: 11, height: 1.6, color: healthy ? const Color(0xFFA7F3D0) : const Color(0xFFFDE68A)),
+                    ),
+                  ),
+                ],
               ),
-          ]),
-        ),
-      ]),
+            ),
+            const SizedBox(height: 12),
+          ],
+          Field(
+            label: 'نرخ دلار (تومان)',
+            child: NumberInput(value: localUsd, onChanged: _onUsdRate),
+          ),
+          if (others.isNotEmpty)
+            AppCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const Text(
+                    'نرخ ارزهای کیف پول',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: C.slate400),
+                  ),
+                  const SizedBox(height: 8),
+                  for (final c in others)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 36,
+                            height: 36,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(color: C.hover, borderRadius: BorderRadius.circular(10)),
+                            child: Text(
+                              currencyMeta(c).symbol,
+                              textDirection: TextDirection.ltr,
+                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(currencyMeta(c).label, style: const TextStyle(fontSize: 12, color: C.slate200)),
+                                Text(
+                                  '1 $c = ? تومان',
+                                  textDirection: TextDirection.ltr,
+                                  style: const TextStyle(fontSize: 10, color: C.slate500),
+                                ),
+                              ],
+                            ),
+                          ),
+                          SizedBox(
+                            width: 140,
+                            child: NumberInput(value: otherRates[c] ?? '', hint: '0', onChanged: (v) => otherRates[c] = v),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 12),
+            child: Text('دریافت قیمت زنده با دکمهٔ رفرش یا رفرش داشبورد انجام می‌شود.', style: TextStyle(fontSize: 11, color: C.slate500)),
+          ),
+          const Text(
+            'قیمت دارایی‌ها',
+            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: C.slate400),
+          ),
+          const SizedBox(height: 8),
+          for (final a in visibleAssets)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: AppCard(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      a.name,
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Field(
+                            label: 'دلار',
+                            child: NumberInput(value: local[a.id]?.$2 ?? '', suffix: '\$', onChanged: (v) => _onPrice(a.id, false, v)),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Field(
+                            label: 'تومان',
+                            child: NumberInput(value: local[a.id]?.$1 ?? '', suffix: 'ت', onChanged: (v) => _onPrice(a.id, true, v)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          if (visibleAssets.isEmpty)
+            const Padding(
+              padding: EdgeInsets.all(20),
+              child: Text(
+                'دارایی با مقدار بیشتر از صفر برای بروزرسانی قیمت وجود ندارد.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 12, color: C.slate500),
+              ),
+            ),
+          const SizedBox(height: 8),
+          AppCard(
+            padding: EdgeInsets.zero,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Material(
+                  type: MaterialType.transparency,
+                  child: ListTile(
+                    title: const Text('تنظیمات پیشرفته', style: TextStyle(fontSize: 13, color: C.slate200)),
+                    trailing: AnimatedRotation(
+                      turns: advancedOpen ? 0.5 : 0,
+                      duration: const Duration(milliseconds: 150),
+                      child: const Icon(Icons.expand_more, color: C.slate400),
+                    ),
+                    onTap: () => setState(() => advancedOpen = !advancedOpen),
+                  ),
+                ),
+                if (advancedOpen)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _PriceSourceCatalog(onChanged: () => setState(_syncConv)),
+                        const Divider(color: C.white10, height: 28),
+                        const Text(
+                          'ضرایب تبدیل',
+                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: C.slate300),
+                        ),
+                        const SizedBox(height: 6),
+                        _advanced(s),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _advanced(PortfolioStore s) {
     final sources = _boundSlugs.map((slug) => findPriceSourceInCatalog(slug, s.priceSourceCatalog)).whereType<PriceSource>().toList();
     if (sources.isEmpty) {
-      return const Text('هیچ دارایی با منبع قیمت خودکار نداری. پس از اتصال منبع به یک دارایی، تنظیمات پیشرفته اینجا نمایش داده می‌شود.',
-          style: TextStyle(fontSize: 11, color: C.slate500, height: 1.6));
+      return const Text(
+        'هیچ دارایی با منبع قیمت خودکار نداری. پس از اتصال منبع به یک دارایی، تنظیمات پیشرفته اینجا نمایش داده می‌شود.',
+        style: TextStyle(fontSize: 11, color: C.slate500, height: 1.6),
+      );
     }
-    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      const Text('فقط برای منابعی که به دارایی‌هایت متصل‌اند. معمولاً نیازی به تغییر نیست.', style: TextStyle(fontSize: 11, color: C.slate500)),
-      const SizedBox(height: 8),
-      for (final src in sources)
-        Builder(builder: (_) {
-          final row = conv[src.slug] ?? ('1', 'none');
-          return Container(
-            margin: const EdgeInsets.only(bottom: 10),
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: C.hover, borderRadius: BorderRadius.circular(14)),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-              Text(src.label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: C.slate200)),
-              const SizedBox(height: 8),
-              Field(label: 'ضریب تبدیل', child: NumberInput(value: row.$1, hint: '1', onChanged: (v) => conv[src.slug] = (v, (conv[src.slug] ?? row).$2))),
-              const FieldLabel('نرخ دلار'),
-              Segmented<String>(
-                options: const [('none', 'بدون دلار'), ('multiply', '× دلار'), ('divide', '÷ دلار')],
-                value: row.$2,
-                onChanged: (v) => setState(() => conv[src.slug] = ((conv[src.slug] ?? row).$1, v)),
-              ),
-            ]),
-          );
-        }),
-    ]);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const Text('فقط برای منابعی که به دارایی‌هایت متصل‌اند. معمولاً نیازی به تغییر نیست.', style: TextStyle(fontSize: 11, color: C.slate500)),
+        const SizedBox(height: 8),
+        for (final src in sources)
+          Builder(
+            builder: (_) {
+              final row = conv[src.slug] ?? ('1', 'none');
+              return Container(
+                margin: const EdgeInsets.only(bottom: 10),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(color: C.hover, borderRadius: BorderRadius.circular(14)),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      src.label,
+                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: C.slate200),
+                    ),
+                    const SizedBox(height: 8),
+                    Field(
+                      label: 'ضریب تبدیل',
+                      child: NumberInput(value: row.$1, hint: '1', onChanged: (v) => conv[src.slug] = (v, (conv[src.slug] ?? row).$2)),
+                    ),
+                    const FieldLabel('نرخ دلار'),
+                    Segmented<String>(
+                      options: const [('none', 'بدون دلار'), ('multiply', '× دلار'), ('divide', '÷ دلار')],
+                      value: row.$2,
+                      onChanged: (v) => setState(() => conv[src.slug] = ((conv[src.slug] ?? row).$1, v)),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+      ],
+    );
   }
 }
 
@@ -440,10 +534,10 @@ class _PriceSourceCatalogState extends State<_PriceSourceCatalog> {
   }
 
   void _cancel() => setState(() {
-        adding = false;
-        editingSlug = null;
-        _reset();
-      });
+    adding = false;
+    editingSlug = null;
+    _reset();
+  });
 
   Future<void> _saveNew(PortfolioStore s) async {
     final user = s.user;
@@ -541,91 +635,133 @@ class _PriceSourceCatalogState extends State<_PriceSourceCatalog> {
     final editing = editingSlug == null ? null : s.priceSources.where((x) => x.slug == editingSlug).firstOrNull;
     final locked = editing?.isBuiltin == true;
     final showForm = adding || editingSlug != null;
-    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      Row(children: [
-        const Expanded(child: Text('منابع قیمت', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: C.slate300))),
-        if (!showForm)
-          TextButton.icon(
-            onPressed: () => setState(() {
-              _reset();
-              editingSlug = null;
-              adding = true;
-            }),
-            icon: const Icon(Icons.add, size: 14),
-            label: const Text('افزودن'),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            const Expanded(
+              child: Text(
+                'منابع قیمت',
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: C.slate300),
+              ),
+            ),
+            if (!showForm)
+              TextButton.icon(
+                onPressed: () => setState(() {
+                  _reset();
+                  editingSlug = null;
+                  adding = true;
+                }),
+                icon: const Icon(Icons.add, size: 14),
+                label: const Text('افزودن'),
+              ),
+          ],
+        ),
+        const Text('ارائه‌دهنده (آبان‌تتر / زرپی) ثابت است؛ نام، کلید دریافت و شناسه را می‌توانی سفارشی کنی.', style: TextStyle(fontSize: 11, color: C.slate500, height: 1.6)),
+        const SizedBox(height: 8),
+        for (final src in visible)
+          Container(
+            margin: const EdgeInsets.only(bottom: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(color: C.hover, borderRadius: BorderRadius.circular(12)),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(src.label, style: const TextStyle(fontSize: 12, color: C.slate200)),
+                      Text(
+                        '${src.slug} · ${src.provider} · ${src.fetchKey ?? ''}',
+                        textDirection: TextDirection.ltr,
+                        style: const TextStyle(fontSize: 10, color: C.slate500),
+                      ),
+                    ],
+                  ),
+                ),
+                TextButton(
+                  onPressed: () => setState(() {
+                    adding = false;
+                    editingSlug = src.slug;
+                    label = src.label;
+                    fetchKey = src.fetchKey ?? '';
+                    provider = src.provider;
+                    slug = src.slug;
+                    formKey++;
+                  }),
+                  child: const Text('ویرایش', style: TextStyle(fontSize: 11)),
+                ),
+                if (!src.isBuiltin)
+                  IconButton(
+                    onPressed: saving ? null : () => _remove(s, src),
+                    icon: const Icon(Icons.delete_outline, size: 16, color: C.rose300),
+                  ),
+              ],
+            ),
           ),
-      ]),
-      const Text('ارائه‌دهنده (آبان‌تتر / زرپی) ثابت است؛ نام، کلید دریافت و شناسه را می‌توانی سفارشی کنی.', style: TextStyle(fontSize: 11, color: C.slate500, height: 1.6)),
-      const SizedBox(height: 8),
-      for (final src in visible)
-        Container(
-          margin: const EdgeInsets.only(bottom: 6),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(color: C.hover, borderRadius: BorderRadius.circular(12)),
-          child: Row(children: [
-            Expanded(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(src.label, style: const TextStyle(fontSize: 12, color: C.slate200)),
-                Text('${src.slug} · ${src.provider} · ${src.fetchKey ?? ''}', textDirection: TextDirection.ltr, style: const TextStyle(fontSize: 10, color: C.slate500)),
-              ]),
+        if (showForm)
+          Container(
+            key: ValueKey(formKey),
+            margin: const EdgeInsets.only(top: 6),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: C.inset,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: C.cyan.withValues(alpha: 0.3)),
             ),
-            TextButton(
-              onPressed: () => setState(() {
-                adding = false;
-                editingSlug = src.slug;
-                label = src.label;
-                fetchKey = src.fetchKey ?? '';
-                provider = src.provider;
-                slug = src.slug;
-                formKey++;
-              }),
-              child: const Text('ویرایش', style: TextStyle(fontSize: 11)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  adding ? 'منبع جدید' : 'ویرایش منبع',
+                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.white),
+                ),
+                const SizedBox(height: 8),
+                if (adding) ...[
+                  const FieldLabel('ارائه‌دهنده'),
+                  Segmented<String>(
+                    options: const [('abantether', 'آبان‌تتر'), ('zarpay', 'زرپی')],
+                    value: provider,
+                    onChanged: (v) => setState(() {
+                      provider = v;
+                      slug = suggestSlug(v, fetchKey);
+                    }),
+                  ),
+                  const SizedBox(height: 10),
+                ],
+                Field(
+                  label: 'نام نمایشی',
+                  child: AppTextField(value: label, onChanged: (v) => label = v),
+                ),
+                Field(
+                  label: 'کلید دریافت (fetch key)',
+                  child: AppTextField(
+                    value: fetchKey,
+                    ltr: true,
+                    enabled: !locked,
+                    onChanged: (v) => setState(() {
+                      fetchKey = v;
+                      if (adding) slug = suggestSlug(provider, v);
+                    }),
+                  ),
+                ),
+                if (adding)
+                  Field(
+                    label: 'شناسه (slug)',
+                    child: AppTextField(value: slug, ltr: true, onChanged: (v) => setState(() => slug = v.trim().toLowerCase())),
+                  ),
+                Row(
+                  children: [
+                    Expanded(child: AppButton(saving ? 'در حال ذخیره...' : 'ذخیره', expand: true, onPressed: saving ? null : () => adding ? _saveNew(s) : _saveEdit(s))),
+                    const SizedBox(width: 8),
+                    AppButton('انصراف', variant: BtnVariant.secondary, onPressed: saving ? null : _cancel),
+                  ],
+                ),
+              ],
             ),
-            if (!src.isBuiltin) IconButton(onPressed: saving ? null : () => _remove(s, src), icon: const Icon(Icons.delete_outline, size: 16, color: C.rose300)),
-          ]),
-        ),
-      if (showForm)
-        Container(
-          key: ValueKey(formKey),
-          margin: const EdgeInsets.only(top: 6),
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(color: C.inset, borderRadius: BorderRadius.circular(14), border: Border.all(color: C.cyan.withValues(alpha: 0.3))),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            Text(adding ? 'منبع جدید' : 'ویرایش منبع', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.white)),
-            const SizedBox(height: 8),
-            if (adding) ...[
-              const FieldLabel('ارائه‌دهنده'),
-              Segmented<String>(
-                options: const [('abantether', 'آبان‌تتر'), ('zarpay', 'زرپی')],
-                value: provider,
-                onChanged: (v) => setState(() {
-                  provider = v;
-                  slug = suggestSlug(v, fetchKey);
-                }),
-              ),
-              const SizedBox(height: 10),
-            ],
-            Field(label: 'نام نمایشی', child: AppTextField(value: label, onChanged: (v) => label = v)),
-            Field(
-              label: 'کلید دریافت (fetch key)',
-              child: AppTextField(
-                value: fetchKey,
-                ltr: true,
-                enabled: !locked,
-                onChanged: (v) => setState(() {
-                  fetchKey = v;
-                  if (adding) slug = suggestSlug(provider, v);
-                }),
-              ),
-            ),
-            if (adding) Field(label: 'شناسه (slug)', child: AppTextField(value: slug, ltr: true, onChanged: (v) => setState(() => slug = v.trim().toLowerCase()))),
-            Row(children: [
-              Expanded(child: AppButton(saving ? 'در حال ذخیره...' : 'ذخیره', expand: true, onPressed: saving ? null : () => adding ? _saveNew(s) : _saveEdit(s))),
-              const SizedBox(width: 8),
-              AppButton('انصراف', variant: BtnVariant.secondary, onPressed: saving ? null : _cancel),
-            ]),
-          ]),
-        ),
-    ]);
+          ),
+      ],
+    );
   }
 }

@@ -27,12 +27,31 @@ Future<void> main() async {
   runApp(const KharjookApp());
 }
 
-class KharjookApp extends StatelessWidget {
+class KharjookApp extends StatefulWidget {
   const KharjookApp({super.key});
+  @override
+  State<KharjookApp> createState() => _KharjookAppState();
+}
+
+class _KharjookAppState extends State<KharjookApp> {
+  // The store lives above MaterialApp so pages pushed on the root navigator
+  // (siblings of `home`, not children) can read it too.
+  PortfolioStore? _store;
+
+  PortfolioStore? get store {
+    if (_store == null && AppConfig.isComplete) _store = PortfolioStore()..init();
+    return _store;
+  }
+
+  @override
+  void dispose() {
+    _store?.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    final app = MaterialApp(
       title: 'خرجوک',
       debugShowCheckedModeBanner: false,
       theme: buildTheme(),
@@ -48,32 +67,17 @@ class KharjookApp extends StatelessWidget {
       builder: (context, child) => Directionality(textDirection: TextDirection.rtl, child: child!),
       home: AppConfig.isComplete ? const _Root() : const SetupScreen(),
     );
+    final s = store;
+    return s == null ? app : ChangeNotifierProvider.value(value: s, child: app);
   }
 }
 
-class _Root extends StatefulWidget {
+class _Root extends StatelessWidget {
   const _Root();
-  @override
-  State<_Root> createState() => _RootState();
-}
-
-class _RootState extends State<_Root> {
-  late final PortfolioStore store = PortfolioStore()..init();
 
   @override
-  void dispose() {
-    store.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return ChangeNotifierProvider.value(
-      value: store,
-      child: Selector<PortfolioStore, String?>(
+  Widget build(BuildContext context) => Selector<PortfolioStore, String?>(
         selector: (_, s) => s.user?.id,
-        builder: (_, uid, __) => uid == null ? const AuthGate() : const Shell(),
-      ),
-    );
-  }
+        builder: (_, uid, _) => uid == null ? const AuthGate() : const Shell(),
+      );
 }
