@@ -1,0 +1,55 @@
+name: kharjook
+description: "خرجوک — مدیریت سبد دارایی و تراکنش‌ها (native Android app)."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.13.7
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  supabase_flutter: ^2.18.3
+  provider: ^6.1.5+1
+  fl_chart: ^1.3.0
+  shared_preferences: ^2.5.6
+  http: ^1.6.0
+  url_launcher: ^6.3.3
+  file_picker: ^13.3.0
+  image_picker: ^1.2.4
+  share_plus: ^13.3.1
+  path_provider: ^2.1.6
+  uuid: ^4.6.0
+  image: ^4.12.0
+  intl: ^0.20.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
+
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "assets/logo.png"
+  adaptive_icon_background: "#4a148c"
+  adaptive_icon_foreground: "assets/logo.png"
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/logo.png
+  fonts:
+    - family: IRANSansX
+      fonts:
+        - asset: assets/fonts/IRANSansX-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/IRANSansX-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/IRANSansX-DemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/IRANSansX-ExtraBold.ttf
+          weight: 700

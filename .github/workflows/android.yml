@@ -1,0 +1,95 @@
+name: Android APK
+
+on:
+  push:
+    branches: [main, 'claude/**']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: apk-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.8'
+          channel: stable
+          cache: true
+
+      - name: Resolve backend config
+        id: cfg
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          API_BASE_URL: ${{ vars.API_BASE_URL || 'https://kharjook.vercel.app' }}
+        run: |
+          set -euo pipefail
+          URL="${SUPABASE_URL:-}"
+          KEY="${SUPABASE_ANON_KEY:-}"
+          if [ -z "$URL" ] || [ -z "$KEY" ]; then
+            # Fallback: the PWA ships NEXT_PUBLIC_SUPABASE_URL / ANON_KEY in its
+            # public JS bundle. Read them from there (public values, RLS-guarded).
+            echo "No secrets set — reading public Supabase config from $API_BASE_URL"
+            python3 scripts/extract_public_config.py "$API_BASE_URL" > cfg.env || true
+            if [ -s cfg.env ]; then . ./cfg.env; URL="${URL:-$EXTRACTED_URL}"; KEY="${KEY:-$EXTRACTED_KEY}"; fi
+          fi
+          if [ -z "$URL" ] || [ -z "$KEY" ]; then
+            echo "::warning::Supabase config not found — app will ask for it on first launch."
+          fi
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+          echo "::add-mask::$KEY"
+          echo "key=$KEY" >> "$GITHUB_OUTPUT"
+          echo "api=$API_BASE_URL" >> "$GITHUB_OUTPUT"
+
+      - name: Signing key (optional, keeps one key across builds)
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+        run: |
+          if [ -n "${KEYSTORE_BASE64:-}" ]; then
+            echo "$KEYSTORE_BASE64" | base64 -d > android/app/release.jks
+            printf 'storeFile=release.jks\nstorePassword=%s\nkeyAlias=kharjook\nkeyPassword=%s\n' "$KEYSTORE_PASSWORD" "$KEYSTORE_PASSWORD" > android/key.properties
+          fi
+
+      - run: flutter pub get
+      - run: dart run flutter_launcher_icons
+      - run: flutter analyze --no-fatal-infos
+      - run: flutter test
+
+      - name: Build APK
+        run: |
+          flutter build apk --release \
+            --dart-define=SUPABASE_URL='${{ steps.cfg.outputs.url }}' \
+            --dart-define=SUPABASE_ANON_KEY='${{ steps.cfg.outputs.key }}' \
+            --dart-define=API_BASE_URL='${{ steps.cfg.outputs.api }}'
+          cp build/app/outputs/flutter-apk/app-release.apk kharjook.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kharjook-apk
+          path: kharjook.apk
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: build-${{ github.run_number }}
+          name: Kharjook ${{ github.run_number }} (${{ github.ref_name }})
+          prerelease: ${{ github.ref_name != 'main' }}
+          files: kharjook.apk
+          body: |
+            Android APK built from `${{ github.sha }}` on `${{ github.ref_name }}`.
+            Open this page on your phone, download `kharjook.apk`, and allow "install unknown apps".
